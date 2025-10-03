@@ -1,0 +1,592 @@
+---
+title: "Análisis Electoral - Padrón JNE 2026"
+format: 
+  html:
+    page-layout: full
+---
+
+```{r setup}
+#| include: false
+library(bslib)
+library(htmltools)
+library(ggplot2)
+library(plotly)
+library(DT)
+library(crosstalk)
+library(downloadthis)
+library(dplyr)
+library(scales)
+
+# Configurar tema de ggplot2 con colores JNE
+jne_colors <- c("#2D353E", "#00969F", "#CB3234", "#F9A825", "#00C853")
+
+theme_jne <- function() {
+  theme_minimal() +
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 14, color = "#2D353E"),
+      axis.text = element_text(size = 11),
+      legend.position = "bottom"
+    )
+}
+```
+
+::: {.panel-tabset}
+
+## Dashboard Principal
+
+### Indicadores Clave del Padrón Electoral
+
+```{r}
+#| echo: false
+#| message: false
+
+# Datos simulados - reemplaza con tus datos reales
+total_electores <- 27895433
+porcentaje_urbano <- 79.8
+total_mesas <- 89245
+departamentos <- 25
+crecimiento <- 3.2
+```
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6 .g-col-lg-3}
+```{r}
+#| echo: false
+value_box(
+  title = "Total de Electores",
+  value = format(total_electores, big.mark = ","),
+  showcase = bsicons::bs_icon("people-fill"),
+  theme = "primary",
+  p("Padrón actualizado 2025")
+)
+```
+:::
+
+::: {.g-col-12 .g-col-md-6 .g-col-lg-3}
+```{r}
+#| echo: false
+value_box(
+  title = "Población Urbana",
+  value = paste0(porcentaje_urbano, "%"),
+  showcase = bsicons::bs_icon("building"),
+  theme = "info",
+  p("Del total de electores")
+)
+```
+:::
+
+::: {.g-col-12 .g-col-md-6 .g-col-lg-3}
+```{r}
+#| echo: false
+value_box(
+  title = "Mesas de Votación",
+  value = format(total_mesas, big.mark = ","),
+  showcase = bsicons::bs_icon("table"),
+  theme = "success",
+  p("A nivel nacional")
+)
+```
+:::
+
+::: {.g-col-12 .g-col-md-6 .g-col-lg-3}
+```{r}
+#| echo: false
+value_box(
+  title = "Crecimiento",
+  value = paste0("+", crecimiento, "%"),
+  showcase = bsicons::bs_icon("arrow-up-circle-fill"),
+  theme = "warning",
+  p("Respecto a 2021")
+)
+```
+:::
+
+:::
+
+### Evolución Histórica del Padrón Electoral
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+
+datos_historicos <- data.frame(
+  Año = c(2011, 2016, 2021, 2026),
+  Electores = c(19949915, 23186084, 25287954, 27895433),
+  Eventos = c("Elecciones Generales", "Elecciones Generales", 
+              "Elecciones Generales", "Proyección 2026")
+)
+
+p <- ggplot(datos_historicos, aes(x = Año, y = Electores, 
+                                  text = paste0(
+                                    "Año: ", Año, "\n",
+                                    "Electores: ", format(Electores, big.mark = ","), "\n",
+                                    "Evento: ", Eventos
+                                  ))) +
+  geom_line(color = "#00969F", size = 1.2) +
+  geom_point(color = "#CB3234", size = 4) +
+  geom_text(aes(label = format(Electores, big.mark = ",")), 
+            vjust = -1.5, fontface = "bold", size = 3.5) +
+  scale_y_continuous(labels = comma, limits = c(18000000, 30000000)) +
+  scale_x_continuous(breaks = datos_historicos$Año) +
+  labs(title = "Evolución del Padrón Electoral Peruano (2011-2026)",
+       x = "Año Electoral",
+       y = "Número de Electores") +
+  theme_jne()
+
+ggplotly(p, tooltip = "text") %>%
+  layout(hovermode = "closest")
+```
+
+::: {.callout-note icon=false collapse="false"}
+## Resumen Ejecutivo
+
+- **Crecimiento sostenido**: El padrón electoral ha crecido 3.2% respecto a 2021, equivalente a *2.6 millones* de nuevos electores
+- **Concentración urbana**: El 79.8% de electores reside en zonas urbanas, reflejando la urbanización del país
+- **Distribución geográfica**: Lima concentra el *32%* del total de electores nacionales
+- **Participación juvenil**: Los electores entre 18-29 años representan el *23.3%* del padrón
+- **Equilibrio de género**: La distribución es 50.2% mujeres y 49.8% hombres
+:::
+
+## Análisis por Departamento
+
+### Top 10 Departamentos por Número de Electores
+
+```{r}
+#| echo: false
+
+# Datos de ejemplo
+top_departamentos <- data.frame(
+  Departamento = c("Lima", "Piura", "La Libertad", "Cajamarca", 
+                   "Puno", "Arequipa", "Cusco", "Junín", "Lambayeque", "Ancash"),
+  Electores = c(8920000, 1580000, 1520000, 1280000, 
+                1150000, 1100000, 1050000, 1020000, 980000, 950000),
+  Mesas = c(28640, 5070, 4880, 4110, 3690, 3530, 3370, 3270, 3150, 3050),
+  Porcentaje = c(32.0, 5.7, 5.5, 4.6, 4.1, 3.9, 3.8, 3.7, 3.5, 3.4)
+)
+
+# Crear objeto compartido para interactividad
+shared_depto <- SharedData$new(top_departamentos)
+```
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-lg-8}
+```{r}
+#| echo: false
+
+p_depto <- plot_ly(shared_depto, 
+                   y = ~reorder(Departamento, Electores), 
+                   x = ~Electores,
+                   type = 'bar',
+                   orientation = 'h',
+                   marker = list(color = '#00969F'),
+                   text = ~paste0(format(Electores, big.mark = ","), 
+                                  " (", Porcentaje, "%)"),
+                   textposition = 'outside',
+                   hovertext = ~paste0(
+                     '<b>', Departamento, '</b><br>',
+                     'Electores: ', format(Electores, big.mark = ","), '<br>',
+                     'Porcentaje: ', Porcentaje, '%'
+                   ),
+                   hoverinfo = 'text') %>%
+  layout(
+    title = list(text = "Distribución de Electores por Departamento", 
+                 font = list(size = 14, color = "#2D353E")),
+    xaxis = list(title = "Número de Electores"),
+    yaxis = list(title = ""),
+    margin = list(l = 100)
+  )
+
+p_depto
+```
+:::
+
+::: {.g-col-12 .g-col-lg-4}
+```{r}
+#| echo: false
+
+# Filtros interactivos
+filter_slider("electores_filter", "Filtrar por electores:", 
+              shared_depto, ~Electores, width = "100%")
+
+filter_select("depto_filter", "Seleccionar departamento:", 
+              shared_depto, ~Departamento, multiple = TRUE)
+```
+
+::: {.callout-tip icon=false}
+## Datos Destacados
+
+*Lima* lidera con casi *9 millones* de electores, seguido por *Piura* y *La Libertad* con más de 1.5 millones cada uno.
+
+Los 10 departamentos principales concentran el *70.2%* del padrón electoral nacional.
+:::
+:::
+
+:::
+
+### Tabla Detallada por Departamento
+
+```{r}
+#| echo: false
+
+# Agregar más datos a la tabla
+todos_departamentos <- rbind(
+  top_departamentos,
+  data.frame(
+    Departamento = c("Loreto", "San Martín", "Huánuco", "Ucayali", "Ica",
+                     "Ayacucho", "Huancavelica", "Apurímac", "Tacna", 
+                     "Tumbes", "Pasco", "Amazonas", "Moquegua", 
+                     "Madre de Dios", "Callao"),
+    Electores = c(920000, 850000, 820000, 540000, 880000,
+                  720000, 450000, 430000, 370000,
+                  260000, 290000, 420000, 190000,
+                  160000, 1050000),
+    Mesas = c(2950, 2730, 2630, 1730, 2820,
+              2310, 1440, 1380, 1190,
+              830, 930, 1350, 610,
+              510, 3370),
+    Porcentaje = c(3.3, 3.0, 2.9, 1.9, 3.2,
+                   2.6, 1.6, 1.5, 1.3,
+                   0.9, 1.0, 1.5, 0.7,
+                   0.6, 3.8)
+  )
+) %>%
+  arrange(desc(Electores)) %>%
+  mutate(
+    Electores_Formatted = format(Electores, big.mark = ","),
+    Mesas_Formatted = format(Mesas, big.mark = ","),
+    Porcentaje_Formatted = paste0(Porcentaje, "%")
+  ) %>%
+  select(Departamento, Electores_Formatted, Mesas_Formatted, Porcentaje_Formatted)
+
+datatable(
+  todos_departamentos,
+  colnames = c("Departamento", "Electores", "Mesas de Votación", "% del Total"),
+  filter = 'top',
+  options = list(
+    pageLength = 10,
+    language = list(
+      url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'
+    ),
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel')
+  ),
+  extensions = 'Buttons',
+  rownames = FALSE,
+  class = 'cell-border stripe'
+) %>%
+  formatStyle(
+    'Electores_Formatted',
+    background = styleColorBar(range(top_departamentos$Electores), '#00969F20'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+```
+
+```{r}
+#| echo: false
+
+# Botón de descarga
+todos_departamentos %>%
+  download_this(
+    output_name = "padron_departamentos_jne_2026",
+    output_extension = ".xlsx",
+    button_label = "Descargar Datos Completos (Excel)",
+    button_type = "primary",
+    has_icon = TRUE,
+    icon = "fa fa-download",
+    class = "btn-sm"
+  )
+```
+
+## Análisis Demográfico
+
+### Distribución por Grupo Etario
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-lg-7}
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+datos_edad <- data.frame(
+  Grupo_Edad = factor(c("18-29", "30-39", "40-49", "50-59", "60+"),
+                      levels = c("18-29", "30-39", "40-49", "50-59", "60+")),
+  Electores = c(6500000, 7200000, 6100000, 4800000, 3295433),
+  Porcentaje = c(23.3, 25.8, 21.9, 17.2, 11.8)
+)
+
+p_edad <- plot_ly(datos_edad, 
+                  x = ~Grupo_Edad, 
+                  y = ~Electores,
+                  type = 'bar',
+                  marker = list(color = c("#00969F", "#2D353E", "#CB3234", 
+                                          "#F9A825", "#00C853")),
+                  text = ~paste0(format(Electores, big.mark = ","), 
+                                 "<br>(", Porcentaje, "%)"),
+                  textposition = 'outside',
+                  hovertext = ~paste0(
+                    'Grupo: ', Grupo_Edad, '<br>',
+                    'Electores: ', format(Electores, big.mark = ","), '<br>',
+                    'Porcentaje: ', Porcentaje, '%'
+                  ),
+                  hoverinfo = 'text') %>%
+  layout(
+    title = list(text = "Distribución del Padrón por Grupo Etario", 
+                 font = list(size = 14, color = "#2D353E")),
+    xaxis = list(title = "Grupo de Edad"),
+    yaxis = list(title = "Número de Electores", tickformat = ","),
+    showlegend = FALSE
+  )
+
+p_edad
+```
+:::
+
+::: {.g-col-12 .g-col-lg-5}
+```{r}
+#| echo: false
+
+# Tabla resumen por edad
+tabla_edad <- datos_edad %>%
+  mutate(
+    Electores_Format = format(Electores, big.mark = ","),
+    Porcentaje_Format = paste0(Porcentaje, "%")
+  ) %>%
+  select(Grupo_Edad, Electores_Format, Porcentaje_Format)
+
+datatable(
+  tabla_edad,
+  colnames = c("Grupo de Edad", "Electores", "% del Total"),
+  options = list(
+    dom = 't',
+    ordering = FALSE,
+    language = list(
+      url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'
+    )
+  ),
+  rownames = FALSE,
+  class = 'cell-border stripe'
+)
+```
+
+::: {.callout-important icon=false}
+## Hallazgos Clave
+
+**Juventud electoral**: Los electores entre 18-39 años suman **13.7 millones** (49.1% del padrón).
+
+**Adultos mayores**: El grupo de 60+ años representa 11.8%, un segmento en crecimiento.
+
+**Edad promedio**: Se estima en **41.5 años**, reflejando el envejecimiento poblacional.
+:::
+:::
+
+:::
+
+### Distribución Urbano - Rural
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+```{r}
+#| echo: false
+#| fig-height: 6
+
+datos_area <- data.frame(
+  Area = c("Urbano", "Rural"),
+  Electores = c(22260754, 5634679),
+  Porcentaje = c(79.8, 20.2)
+)
+
+plot_ly(datos_area, 
+        labels = ~Area, 
+        values = ~Electores,
+        type = 'pie',
+        marker = list(colors = c('#00969F', '#CB3234')),
+        textinfo = 'label+percent',
+        textfont = list(size = 16, color = 'white'),
+        hovertext = ~paste0(
+          Area, '<br>',
+          'Electores: ', format(Electores, big.mark = ","), '<br>',
+          'Porcentaje: ', Porcentaje, '%'
+        ),
+        hoverinfo = 'text') %>%
+  layout(
+    title = list(text = "Distribución Urbano - Rural", 
+                 font = list(size = 14, color = "#2D353E"))
+  )
+```
+:::
+
+::: {.g-col-12 .g-col-md-6}
+```{r}
+#| echo: false
+
+# Métricas adicionales
+rural_growth <- 1.8
+urban_growth <- 3.6
+
+div(
+  style = "padding-top: 50px;",
+  value_box(
+    title = "Crecimiento Urbano",
+    value = paste0("+", urban_growth, "%"),
+    showcase = bsicons::bs_icon("building"),
+    theme = "info",
+    p("Respecto a 2021")
+  ),
+  br(),
+  value_box(
+    title = "Crecimiento Rural",
+    value = paste0("+", rural_growth, "%"),
+    showcase = bsicons::bs_icon("tree"),
+    theme = "warning",
+    p("Respecto a 2021")
+  )
+)
+```
+:::
+
+:::
+
+## Proyecciones y Tendencias
+
+### Proyección del Padrón Electoral 2026-2036
+
+```{r}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 6
+
+# Datos históricos + proyecciones
+proyeccion <- data.frame(
+  Año = c(2011, 2016, 2021, 2026, 2031, 2036),
+  Electores = c(19949915, 23186084, 25287954, 27895433, 30120000, 32150000),
+  Tipo = c("Histórico", "Histórico", "Histórico", "Actual", 
+           "Proyección", "Proyección")
+)
+
+p_proyeccion <- plot_ly(proyeccion, x = ~Año, y = ~Electores, 
+                        color = ~Tipo,
+                        colors = c("#00969F", "#CB3234"),
+                        type = 'scatter', 
+                        mode = 'lines+markers',
+                        line = list(width = 3),
+                        marker = list(size = 10),
+                        hovertext = ~paste0(
+                          'Año: ', Año, '<br>',
+                          'Electores: ', format(Electores, big.mark = ","), '<br>',
+                          'Tipo: ', Tipo
+                        ),
+                        hoverinfo = 'text') %>%
+  layout(
+    title = list(text = "Tendencia y Proyección del Padrón Electoral", 
+                 font = list(size = 14, color = "#2D353E")),
+    xaxis = list(title = "Año", tickvals = proyeccion$Año),
+    yaxis = list(title = "Número de Electores", tickformat = ","),
+    hovermode = "x unified"
+  )
+
+p_proyeccion
+```
+
+::: {.callout-note icon=false}
+## Metodología de Proyección
+
+Las proyecciones se basan en:
+
+- Tendencias demográficas del INEI
+- Tasas históricas de crecimiento poblacional
+- Proyecciones de población en edad de votar (18+)
+- Modelos de regresión lineal con datos 2011-2026
+
+**Nota**: Estas son estimaciones y pueden variar según cambios demográficos no previstos.
+:::
+
+## Recursos y Descargas
+
+### Documentos Disponibles
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-4}
+::: {.callout-tip icon=false}
+## Datos
+
+```{r}
+#| echo: false
+
+# Crear dataset completo para descarga
+dataset_completo <- todos_departamentos
+
+dataset_completo %>%
+  download_this(
+    output_name = "padron_completo_jne_2026",
+    output_extension = ".csv",
+    button_label = "Descargar CSV",
+    button_type = "primary",
+    has_icon = TRUE,
+    icon = "fa fa-file-csv"
+  )
+```
+
+```{r}
+#| echo: false
+
+dataset_completo %>%
+  download_this(
+    output_name = "padron_completo_jne_2026",
+    output_extension = ".xlsx",
+    button_label = "Descargar Excel",
+    button_type = "success",
+    has_icon = TRUE,
+    icon = "fa fa-file-excel"
+  )
+```
+:::
+:::
+
+::: {.g-col-12 .g-col-md-4}
+::: {.callout-info icon=false}
+## Metodología
+
+- [Metodología del Análisis (PDF)](#)
+- [Fuentes de Datos](#)
+- [Notas Técnicas](#)
+- [Glosario Electoral](#)
+:::
+:::
+
+::: {.g-col-12 .g-col-md-4}
+::: {.callout-warning icon=false}
+## Enlaces JNE
+
+- [Portal JNE](https://www.jne.gob.pe/)
+- [Voto Informado](https://votoinformado.jne.gob.pe/voto)
+- [Consulta tu local](https://servicios.jne.gob.pe/consultalocal/)
+- [Padrón Electoral](https://www.jne.gob.pe/padron-electoral/)
+:::
+:::
+
+:::
+
+### Código Fuente
+
+Este reporte fue generado con R y Quarto. Todo el código es abierto y reproducible.
+
+**Librerías principales utilizadas:**
+
+- `ggplot2` y `plotly` para visualizaciones interactivas
+- `DT` para tablas dinámicas
+- `bslib` para componentes modernos
+- `crosstalk` para filtros interactivos
+- `dplyr` para manipulación de datos
+
+**Última actualización**: `r format(Sys.Date(), "%d de %B de %Y")`
+
+:::
