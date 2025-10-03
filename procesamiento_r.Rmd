@@ -1,0 +1,377 @@
+
+```{r}
+# Cargar librerías necesarias
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(purrr)
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+# Definir los archivos
+archivos <- c(
+  "datasets/2006_EG_Padron.xlsx",
+  "datasets/2011_EG_Padron.xlsx",
+  "datasets/2016_EG_Padron.xlsx",
+  "datasets/2021_EG_V1_Padron.xlsx",
+  "datasets/2026_EG_Padron.xlsx"
+)
+```
+
+
+```{r}
+# Función para explorar la estructura de cada archivo
+explorar_archivo <- function(archivo) {
+  cat("\n========================================\n")
+  cat("Archivo:", archivo, "\n")
+  cat("========================================\n")
+  
+  # Obtener nombres de las hojas
+  hojas <- excel_sheets(archivo)
+  cat("Número de hojas:", length(hojas), "\n")
+  cat("Nombres de hojas:", paste(hojas, collapse = ", "), "\n\n")
+  
+  # Para cada hoja, mostrar información básica
+  for (hoja in hojas) {
+    cat("  Hoja:", hoja, "\n")
+    
+    # Leer primeras filas para ver estructura
+    datos_muestra <- read_excel(archivo, sheet = hoja, n_max = 5)
+    
+    cat("  Dimensiones completas:")
+    datos_completos <- read_excel(archivo, sheet = hoja)
+    cat(nrow(datos_completos), "filas x", ncol(datos_completos), "columnas\n")
+    
+    cat("  Nombres de columnas originales:\n")
+    cat("   ", paste(names(datos_muestra), collapse = " | "), "\n\n")
+    
+    # Aplicar clean_names y mostrar nombres limpios
+    datos_limpio <- datos_muestra %>% clean_names()
+    cat("  Nombres de columnas después de clean_names:\n")
+    cat("   ", paste(names(datos_limpio), collapse = " | "), "\n\n")
+  }
+  
+  return(hojas)
+}
+
+# Explorar cada archivo
+estructura_archivos <- map(archivos, explorar_archivo)
+names(estructura_archivos) <- archivos
+```
+```{r}
+# Función para leer y estandarizar datos nacionales distritales (2006-2021)
+leer_datos_distritales <- function(archivo, año) {
+  cat("Procesando datos distritales de", año, "\n")
+  
+  datos <- read_excel(archivo, sheet = "nacional") %>%
+    clean_names() %>%
+    mutate(
+      año = año,
+      nivel_agregacion = "distrital",
+      # Estandarizar nombres de columnas para consistencia
+      departamento = toupper(departamento),
+      provincia = toupper(provincia),
+      distrito = toupper(distrito)
+    ) %>%
+    # Reordenar columnas
+    select(
+      año,
+      nivel_agregacion,
+      departamento,
+      provincia,
+      distrito,
+      numero_de_electores,
+      electores_varones,
+      percent_electores_varones,
+      electores_mujeres,
+      percent_electores_mujeres,
+      electores_jovenes,
+      percent_electores_jovenes
+    )
+  
+  return(datos)
+}
+```
+
+
+```{r}
+# Función para leer y estandarizar datos departamentales (2026)
+leer_datos_departamentales <- function(archivo, año) {
+  cat("Procesando datos departamentales de", año, "\n")
+  
+  datos <- read_excel(archivo, sheet = "nacional") %>%
+    clean_names() %>%
+    mutate(
+      año = año,
+      nivel_agregacion = "departamental",
+      departamento = toupper(departamento),
+      provincia = NA_character_,
+      distrito = NA_character_,
+      # El archivo 2026 no tiene datos de jóvenes
+      electores_jovenes = NA_real_,
+      percent_electores_jovenes = NA_real_
+    ) %>%
+    # Renombrar para consistencia
+    rename(
+      percent_electores_varones = percent_electores_varones,
+      percent_electores_mujeres = percent_electores_mujeres
+    ) %>%
+    # Reordenar columnas
+    select(
+      año,
+      nivel_agregacion,
+      departamento,
+      provincia,
+      distrito,
+      numero_de_electores,
+      electores_varones,
+      percent_electores_varones,
+      electores_mujeres,
+      percent_electores_mujeres,
+      electores_jovenes,
+      percent_electores_jovenes
+    )
+  
+  return(datos)
+}
+```
+
+
+```{r}
+# Leer todos los datos nacionales
+datos_2006 <- leer_datos_distritales("datasets/2006_EG_Padron.xlsx", 2006)
+datos_2011 <- leer_datos_distritales("datasets/2011_EG_Padron.xlsx", 2011)
+datos_2016 <- leer_datos_distritales("datasets/2016_EG_Padron.xlsx", 2016)
+datos_2021 <- leer_datos_distritales("datasets/2021_EG_V1_Padron.xlsx", 2021)
+datos_2026 <- leer_datos_departamentales("datasets/2026_EG_Padron.xlsx", 2026)
+
+# Consolidar todos los datos nacionales
+padron_nacional_consolidado <- bind_rows(
+  datos_2006,
+  datos_2011,
+  datos_2016,
+  datos_2021,
+  datos_2026
+)
+
+# Mostrar resumen
+cat("\n=== RESUMEN DE DATOS NACIONALES CONSOLIDADOS ===\n")
+cat("Total de registros:", nrow(padron_nacional_consolidado), "\n")
+cat("Registros por año:\n")
+print(table(padron_nacional_consolidado$año, padron_nacional_consolidado$nivel_agregacion))
+```
+
+
+
+```{r}
+# Función para leer y estandarizar datos del extranjero
+leer_datos_extranjero <- function(archivo, año) {
+  
+  # El archivo 2026 no tiene hoja de extranjero
+  if (año == 2026) {
+    cat("Nota: El archivo de", año, "no contiene datos del extranjero\n")
+    return(NULL)
+  }
+  
+  cat("Procesando datos del extranjero de", año, "\n")
+  
+  datos <- read_excel(archivo, sheet = "extranjero") %>%
+    clean_names() %>%
+    mutate(
+      año = año,
+      # Estandarizar nombres
+      continente = toupper(continente),
+      pais = toupper(pais),
+      ciudad = toupper(ciudad)
+    ) %>%
+    # Reordenar columnas
+    select(
+      año,
+      continente,
+      pais,
+      ciudad,
+      numero_de_electores,
+      electores_varones,
+      percent_electores_varones,
+      electores_mujeres,
+      percent_electores_mujeres,
+      electores_jovenes,
+      percent_electores_jovenes
+    )
+  
+  return(datos)
+}
+
+# Leer todos los datos del extranjero
+extranjero_2006 <- leer_datos_extranjero("datasets/2006_EG_Padron.xlsx", 2006)
+extranjero_2011 <- leer_datos_extranjero("datasets/2011_EG_Padron.xlsx", 2011)
+extranjero_2016 <- leer_datos_extranjero("datasets/2016_EG_Padron.xlsx", 2016)
+extranjero_2021 <- leer_datos_extranjero("datasets/2021_EG_V1_Padron.xlsx", 2021)
+extranjero_2026 <- leer_datos_extranjero("datasets/2026_EG_Padron.xlsx", 2026)
+
+# Consolidar datos del extranjero (excluyendo NULL de 2026)
+padron_extranjero_consolidado <- bind_rows(
+  extranjero_2006,
+  extranjero_2011,
+  extranjero_2016,
+  extranjero_2021
+)
+
+# Mostrar resumen
+cat("\n=== RESUMEN DE DATOS DEL EXTRANJERO CONSOLIDADOS ===\n")
+cat("Total de registros:", nrow(padron_extranjero_consolidado), "\n")
+cat("Registros por año:\n")
+print(table(padron_extranjero_consolidado$año))
+```
+
+
+
+```{r}
+# Agregar datos distritales a nivel departamental para comparación
+padron_departamental <- padron_nacional_consolidado %>%
+  filter(nivel_agregacion == "distrital") %>%
+  group_by(año, departamento) %>%
+  summarise(
+    nivel_agregacion = "departamental_agregado",
+    numero_de_electores = sum(numero_de_electores, na.rm = TRUE),
+    electores_varones = sum(electores_varones, na.rm = TRUE),
+    electores_mujeres = sum(electores_mujeres, na.rm = TRUE),
+    electores_jovenes = sum(electores_jovenes, na.rm = TRUE),
+    n_distritos = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    percent_electores_varones = (electores_varones / numero_de_electores) * 100,
+    percent_electores_mujeres = (electores_mujeres / numero_de_electores) * 100,
+    percent_electores_jovenes = (electores_jovenes / numero_de_electores) * 100
+  )
+
+# Combinar con datos departamentales originales de 2026
+padron_departamental_completo <- bind_rows(
+  padron_departamental,
+  padron_nacional_consolidado %>% 
+    filter(nivel_agregacion == "departamental") %>%
+    mutate(nivel_agregacion = "departamental_original")
+)
+
+# Mostrar comparación
+cat("\n=== COMPARACIÓN A NIVEL DEPARTAMENTAL ===\n")
+padron_departamental_completo %>%
+  group_by(año, nivel_agregacion) %>%
+  summarise(
+    total_electores = sum(numero_de_electores, na.rm = TRUE),
+    n_departamentos = n_distinct(departamento),
+    .groups = "drop"
+  ) %>%
+  kable(format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+```{r}
+# Evolución temporal del padrón
+evolucion_padron <- padron_departamental_completo %>%
+  group_by(año) %>%
+  summarise(
+    total_electores = sum(numero_de_electores, na.rm = TRUE),
+    total_varones = sum(electores_varones, na.rm = TRUE),
+    total_mujeres = sum(electores_mujeres, na.rm = TRUE),
+    total_jovenes = sum(electores_jovenes, na.rm = TRUE),
+    pct_varones = (total_varones / total_electores) * 100,
+    pct_mujeres = (total_mujeres / total_electores) * 100,
+    pct_jovenes = (total_jovenes / total_electores) * 100
+  )
+
+# Mostrar tabla
+evolucion_padron %>%
+  kable(
+    col.names = c("Año", "Total Electores", "Varones", "Mujeres", "Jóvenes", 
+                  "% Varones", "% Mujeres", "% Jóvenes"),
+    format.args = list(big.mark = ","),
+    digits = 2
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+# Gráfico de evolución
+library(ggplot2)
+
+evolucion_padron %>%
+  ggplot(aes(x = año, y = total_electores)) +
+  geom_line(size = 1.2, color = "darkblue") +
+  geom_point(size = 3, color = "darkblue") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Evolución del Padrón Electoral Nacional",
+    subtitle = "Perú 2006-2026",
+    x = "Año",
+    y = "Número de electores",
+    caption = "Fuente: Padrón Electoral EG"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 12)
+  )
+```
+
+
+```{r}
+# Preparar datos para visualización de género
+datos_genero <- evolucion_padron %>%
+  select(año, pct_varones, pct_mujeres) %>%
+  pivot_longer(
+    cols = c(pct_varones, pct_mujeres),
+    names_to = "genero",
+    values_to = "porcentaje"
+  ) %>%
+  mutate(
+    genero = case_when(
+      genero == "pct_varones" ~ "Varones",
+      genero == "pct_mujeres" ~ "Mujeres"
+    )
+  )
+
+# Gráfico de distribución por género
+ggplot(datos_genero, aes(x = año, y = porcentaje, fill = genero)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Varones" = "#4A90E2", "Mujeres" = "#E24A90")) +
+  labs(
+    title = "Distribución del Padrón Electoral por Género",
+    subtitle = "Perú 2006-2026",
+    x = "Año",
+    y = "Porcentaje (%)",
+    fill = "Género"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "bottom"
+  )
+```
+```{r}
+# Top 10 departamentos en 2026
+top_departamentos_2026 <- padron_nacional_consolidado %>%
+  filter(año == 2026) %>%
+  arrange(desc(numero_de_electores)) %>%
+  head(10)
+
+# Gráfico
+ggplot(top_departamentos_2026, aes(x = reorder(departamento, numero_de_electores), 
+                                    y = numero_de_electores)) +
+  geom_bar(stat = "identity", fill = "#2E86AB") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Top 10 Departamentos por Número de Electores",
+    subtitle = "Padrón Electoral 2026",
+    x = "",
+    y = "Número de electores"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14)
+  )
+```
+
