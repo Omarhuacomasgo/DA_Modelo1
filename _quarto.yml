@@ -1,0 +1,50 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Análisis Electoral - JNE"
+  navbar:
+    background: primary
+    left:
+      - text: "Inicio"
+        href: index.qmd
+      - text: "Análisis Detallado"
+        href: analisis_detallado.qmd
+    right:
+      - icon: envelope-fill
+        href: "mailto:TU_EMAIL@TU_DOMINIO.com"
+        aria-label: Email
+      - icon: github
+        href: "https://github.com/TU_USUARIO/TU_REPOSITORIO"
+        aria-label: GitHub
+      - icon: linkedin
+        href: "https://www.linkedin.com/in/TU_USUARIO/"
+        aria-label: LinkedIn
+  page-footer:
+    left: "© 2025 Jurado Nacional de Elecciones. Todos los derechos reservados."
+    right:
+      - icon: envelope-fill
+        href: "mailto:TU_EMAIL@TU_DOMINIO.com"
+        aria-label: Email
+      - icon: github
+        href: "https://github.com/TU_USUARIO/TU_REPOSITORIO"
+        aria-label: GitHub
+      - icon: linkedin
+        href: "https://www.linkedin.com/in/TU_USUARIO/"
+        aria-label: LinkedIn
+
+format:
+  html:
+    theme:
+      - litera
+      - theme.scss
+    mainfont: "Atkinson Hyperlegible"
+    toc: true
+    toc-location: left
+    toc-title: "Secciones del Reporte"
+    code-fold: true
+    code-summary: "Mostrar/Ocultar Código"
+    smooth-scroll: true
+    lang: es
+    code-tools: true

@@ -1,0 +1,454 @@
+/*-- scss:defaults --*/
+
+// Paleta de colores JNE (Prioridad Gris)
+$jne-red: rgb(203, 50, 52);
+$jne-dark-gray: rgb(45, 53, 62);
+$jne-turquesa: rgb(0, 150, 160);
+$jne-light-gray: rgb(245, 249, 250);
+$jne-text-dark: rgb(33, 37, 41);
+$jne-yellow: rgb(249, 168, 37);
+$jne-green: rgb(0, 200, 83);
+
+// Sobrescribe variables de Bootstrap
+$primary: $jne-dark-gray;
+$body-bg: white;
+$body-color: $jne-text-dark;
+$link-color: $jne-red;
+$link-hover-color: darken($jne-red, 15%);
+
+// Configuración de la barra de navegación (ahora gris)
+$navbar-bg: $jne-dark-gray;
+$navbar-dark-color: rgba(255, 255, 255, .9);
+$navbar-dark-hover-color: rgba(255, 255, 255, 1);
+$navbar-dark-active-color: #fff;
+
+/*-- scss:rules --*/
+
+// Configuración de títulos principales (verde/turquesa)
+h1 {
+    color: $jne-turquesa;
+    font-weight: bold;
+}
+
+// Subtítulos (gris oscuro)
+h2, h3, h4, h5, h6 {
+    color: $jne-dark-gray;
+    font-weight: bold;
+}
+
+// Estilo especial para el título principal del sitio
+.quarto-title {
+    color: $jne-turquesa;
+}
+
+// Texto importante/destacado (naranja/dorado - más suave que rojo)
+strong, b, .important {
+    color: #E67E22;  // Naranja suave
+    font-weight: bold;
+}
+
+// Alternativa: usar el turquesa para énfasis
+em, i {
+    color: $jne-turquesa;
+    font-style: normal;
+    font-weight: 600;
+}
+
+// Personalizar colores de las value boxes
+.bslib-value-box[data-fill-bg="true"].bg-primary {
+    background-color: $jne-dark-gray !important;
+}
+
+.bslib-value-box[data-fill-bg="true"].bg-info {
+    background-color: $jne-turquesa !important;
+}
+
+.bslib-value-box[data-fill-bg="true"].bg-success {
+    background-color: $jne-green !important;
+}
+
+.bslib-value-box[data-fill-bg="true"].bg-warning {
+    background-color: $jne-yellow !important;
+}
+
+// Animación y hover para value boxes
+.bslib-value-box {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bslib-value-box:hover {
+    border-color: $jne-turquesa;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+// Estilo para la tabla de contenidos
+#toc-title {
+    color: $jne-dark-gray;
+    font-weight: bold;
+}
+
+.toc-title {
+    color: $jne-dark-gray;
+    font-weight: bold;
+}
+
+// Footer personalizado
+.page-footer {
+    background-color: $jne-dark-gray;
+    color: white;
+    padding: 2rem 0;
+}
+
+.page-footer a {
+    color: $jne-turquesa;
+}
+
+.page-footer a:hover {
+    color: lighten($jne-turquesa, 15%);
+}
+
+// Botones con estilo JNE
+.btn-primary {
+    background-color: $jne-dark-gray;
+    border-color: $jne-dark-gray;
+}
+
+.btn-primary:hover {
+    background-color: darken($jne-dark-gray, 10%);
+    border-color: darken($jne-dark-gray, 10%);
+}
+
+.btn-success {
+    background-color: $jne-green;
+    border-color: $jne-green;
+}
+
+.btn-success:hover {
+    background-color: darken($jne-green, 10%);
+    border-color: darken($jne-green, 10%);
+}
+
+// Callouts personalizados
+.callout-note {
+    border-left-color: $jne-turquesa;
+}
+
+.callout-tip {
+    border-left-color: $jne-green;
+}
+
+.callout-important {
+    border-left-color: $jne-red;
+}
+
+.callout-warning {
+    border-left-color: $jne-yellow;
+}
+
+// Estilo para el código
+code {
+    background-color: $jne-light-gray;
+    color: $jne-dark-gray;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+// Estilo para bloques de código
+pre {
+    background-color: $jne-light-gray;
+    border: 1px solid darken($jne-light-gray, 10%);
+    border-radius: 5px;
+}
+
+// Tablas con estilo JNE
+table {
+    thead {
+        background-color: $jne-dark-gray;
+        color: white;
+    }
+    
+    tbody tr:nth-child(even) {
+        background-color: $jne-light-gray;
+    }
+}
+
+// Estilo para tablas DataTables
+.dataTables_wrapper {
+    font-size: 0.95rem;
+}
+
+.dataTables_filter input {
+    border: 1px solid $jne-turquesa;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+.dataTables_filter input:focus {
+    outline: none;
+    border-color: $jne-dark-gray;
+    box-shadow: 0 0 0 2px rgba(0, 150, 160, 0.2);
+}
+
+// Enlaces en la navegación
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+// Pestañas (tabs)
+.panel-tabset .nav-tabs {
+    border-bottom: 2px solid $jne-turquesa;
+}
+
+.panel-tabset .nav-link {
+    color: $jne-dark-gray;
+    font-weight: 500;
+}
+
+.panel-tabset .nav-link.active {
+    color: $jne-turquesa;
+    border-color: $jne-turquesa $jne-turquesa white;
+    border-width: 2px 2px 2px 2px;
+}
+
+.panel-tabset .nav-link:hover {
+    border-color: lighten($jne-turquesa, 20%);
+}
+
+// Diseño responsivo para tarjetas
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+// Diseño para móviles (menos de 768px)
+@media (max-width: 767px) {
+    body {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    
+    h1 { 
+        font-size: 1.8rem; 
+    }
+    
+    h2 { 
+        font-size: 1.5rem; 
+    }
+    
+    h3 {
+        font-size: 1.3rem;
+    }
+    
+    .bslib-value-box {
+        font-size: 0.9rem;
+    }
+    
+    .bslib-value-box .value-box-value {
+        font-size: 1.8rem !important;
+    }
+    
+    .bslib-value-box .value-box-title {
+        font-size: 0.85rem !important;
+    }
+    
+    // Ocultar tabla de contenidos en móvil
+    #quarto-margin-sidebar {
+        display: none;
+    }
+    
+    // Hacer gráficos más pequeños en móvil
+    .quarto-figure {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    
+    // Ajustar padding general
+    .quarto-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    // Tablas responsivas
+    .dataTables_wrapper {
+        overflow-x: auto;
+    }
+}
+
+// Tablet (768px - 991px)
+@media (min-width: 768px) and (max-width: 991px) {
+    .bslib-value-box .value-box-value {
+        font-size: 2rem !important;
+    }
+}
+
+// Desktop grande (1200px+)
+@media (min-width: 1200px) {
+    .quarto-container {
+        max-width: 1400px;
+    }
+}
+
+// Modo de impresión
+@media print {
+    .navbar, .page-footer, .code-tools-button {
+        display: none;
+    }
+    
+    .bslib-value-box {
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+}
+
+// Mejoras de accesibilidad
+*:focus {
+    outline: 2px solid $jne-turquesa;
+    outline-offset: 2px;
+}
+
+button:focus, 
+a:focus,
+input:focus,
+select:focus {
+    outline: 2px solid $jne-turquesa;
+    outline-offset: 2px;
+}
+
+// Animaciones suaves
+* {
+    scroll-behavior: smooth;
+}
+
+// Botones de descarga personalizados
+.download-this {
+    margin: 5px;
+}
+
+.download-this button {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.download-this button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+// Crosstalk filters (filtros interactivos)
+.crosstalk-input-checkboxgroup label,
+.crosstalk-input-select label,
+.crosstalk-input-slider label {
+    color: $jne-dark-gray;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.crosstalk-input-slider .irs-bar,
+.crosstalk-input-slider .irs-from,
+.crosstalk-input-slider .irs-to,
+.crosstalk-input-slider .irs-single {
+    background: $jne-turquesa;
+}
+
+// Plotly customization
+.js-plotly-plot .plotly .modebar-btn {
+    color: $jne-dark-gray !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn:hover {
+    background: $jne-light-gray !important;
+}
+
+// Mejoras en el grid system
+.g-col-12 {
+    padding: 0.5rem;
+}
+
+// Espaciado consistente
+section {
+    margin-bottom: 2rem;
+}
+
+// Headers de secciones con línea decorativa
+h2::after {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, $jne-turquesa, transparent);
+    margin-top: 0.5rem;
+}
+
+// Estilo para badges o etiquetas
+.badge {
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.badge-primary {
+    background-color: $jne-dark-gray;
+}
+
+.badge-info {
+    background-color: $jne-turquesa;
+}
+
+.badge-success {
+    background-color: $jne-green;
+}
+
+.badge-warning {
+    background-color: $jne-yellow;
+    color: $jne-text-dark;
+}
+
+// Sombras suaves para elementos elevados
+.card, .callout {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover, .callout:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+// Loading spinner personalizado (si se usa)
+.spinner-border {
+    color: $jne-turquesa;
+}
+
+// Mejoras en accesibilidad de contraste
+a {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s ease;
+}
+
+a:hover {
+    text-decoration-color: currentColor;
+}
+
+// Estilo para destacar texto seleccionado
+::selection {
+    background-color: rgba(0, 150, 160, 0.3);
+    color: $jne-text-dark;
+}
+
+::-moz-selection {
+    background-color: rgba(0, 150, 160, 0.3);
+    color: $jne-text-dark;
+}
