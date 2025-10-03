@@ -1,0 +1,59 @@
+name: Publish Quarto Site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master # Cambia a 'master' si tu rama principal se llama así
+
+  # Permite ejecutar manualmente desde la pestaña Actions
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 'release'
+
+      - name: Install R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.1'
+
+      - name: Install R Dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages:
+            any::knitr
+            any::rmarkdown
+            any::ggplot2
+            any::plotly
+            any::DT
+            any::bslib
+            any::bsicons
+            any::htmltools
+            any::dplyr
+            any::tidyr
+            any::readr
+            any::scales
+            any::crosstalk
+            any::downloadthis
+            any::writexl
+
+      - name: Render Quarto Project
+        uses: quarto-dev/quarto-actions/render@v2
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'  # Cambia a 'master' si usas master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
