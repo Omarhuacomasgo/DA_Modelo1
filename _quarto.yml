@@ -39,7 +39,7 @@ format:
     theme:
       - litera
       - theme.scss
-    mainfont: "Atkinson Hyperlegible"
+    css: custom.css
     toc: true
     toc-location: left
     toc-title: "Secciones del Reporte"

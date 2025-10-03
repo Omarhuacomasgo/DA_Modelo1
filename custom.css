@@ -1,0 +1,34 @@
+/* Importar fuentes de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+
+/* Aplicar fuente principal al body */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fuente para títulos */
+h1, h2, h3, h4, h5, h6,
+.navbar-brand,
+.nav-link {
+  font-family: 'Source Sans 3', 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* Mejorar renderizado de fuentes */
+* {
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+/* Asegurar que los value boxes usen la fuente correcta */
+.bslib-value-box {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Código con fuente monoespaciada */
+code, pre {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+}
